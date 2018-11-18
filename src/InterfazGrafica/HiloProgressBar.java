@@ -5,7 +5,6 @@
  */
 package InterfazGrafica;
 
-import static InterfazGrafica.CargaDatos.jTextField1;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 import practica1redes2.Cliente;
@@ -16,20 +15,20 @@ import practica1redes2.Cliente;
  */
 public class HiloProgressBar extends SwingWorker{
     private Cliente c;
-    
-    public HiloProgressBar(Cliente c)
+    private JProgressBar barra;
+    public HiloProgressBar(Cliente c, JProgressBar barra)
     {        
         this.c=c;
+        this.barra=barra;
     }
     
     @Override
     protected Object doInBackground() throws Exception {
-        
-        java.awt.EventQueue.invokeLater(new Runnable() {
-        public void run() {        
-            System.out.println(c.getPorcentaje());
-           jTextField1.setText(c.getPorcentaje()+"%");
-        }});
+        int porcentaje=0;
+        do{
+           porcentaje=(int) c.getPorcentaje();
+           barra.setValue((int)c.getPorcentaje());
+        }while(porcentaje<100);
         return null;  
     }
 }

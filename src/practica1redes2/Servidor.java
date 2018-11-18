@@ -30,6 +30,7 @@ public class Servidor extends Thread{
     private Socket cliente=null;
     private int tamanoArch;
     public float porcentaje;
+    private int TAMBUFFER=100;
     public Servidor(){
     }
     @Override
@@ -84,10 +85,16 @@ public class Servidor extends Thread{
                     }
                     //Si entra aca, significa que es un byte, procedemos a guardarlo en dato
                     else{
-                        dato[contadorDato]=(byte)entrada;
-                        contadorDato++;
+                        //System.out.println(new String((byte[])entrada));
+                        byte[] bEntrada=(byte[])entrada;
+                        for(int i=0; i<bEntrada.length; i++)
+                        {
+                            dato[contadorDato]=bEntrada[i];
+                            contadorDato++;
+                        }
                         porcentaje=((contadorDato+1)*100)/(this.tamanoArch);
-                        System.out.println("porcentaje: "+porcentaje);
+                        salidaDatos.writeObject("lo recibí\n");
+                        System.out.println("porcentaje: " + porcentaje + "%");
                     }
                 }
             //Entra a esta excepcion cuando el cliente acabe su conexion, aca se escribe en el fichero    

@@ -21,11 +21,10 @@ import practica1redes2.Cliente;
  *
  * @author HP
  */
-public class CargaDatos extends javax.swing.JFrame {
+public class CargaDatos extends javax.swing.JFrame implements Runnable {
     public String[] archivosSeleccionados={};
     public DefaultListModel<String> modelo;
     public Cliente c;
-    
     public CargaDatos() {
         initComponents();
     }
@@ -43,7 +42,7 @@ public class CargaDatos extends javax.swing.JFrame {
         Enviar = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        jProgressBar1 = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -120,31 +119,26 @@ public class CargaDatos extends javax.swing.JFrame {
 
         jLabel2.setText("Progreso");
 
-        jTextField1.setText("0 %");
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jTextField1))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 20, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -178,27 +172,8 @@ public class CargaDatos extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void EnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EnviarActionPerformed
-        
-        for(int i=0;i<this.archivosSeleccionados.length;i++)
-        {
-            this.c=new Cliente();
-            HiloProgressBar print=new HiloProgressBar(this.c);
-            print.execute();
-            //c.setBar(jProgressBar1);
-            Archivos archivo=new Archivos(archivosSeleccionados[i]);
-            try {
-                if(c.EnviarDatos(archivo)==1){
-                    modelo.remove(0);
-                    JOptionPane.showMessageDialog(null, "Archivo "+archivosSeleccionados[i]+" ha sido recibido exitosamente");
-                    archivosSeleccionados[i]=null;
-                }
-            } catch (InterruptedException ex) {
-                System.out.println("Conexion interrumpida: "+ex);
-            } catch(NullPointerException ex){
-                System.out.println("Servidor No está disponible "+ex);
-                i=this.archivosSeleccionados.length;
-            }
-        }
+        Thread hilo= new Thread(this);
+        hilo.start();
     }//GEN-LAST:event_EnviarActionPerformed
 
     private void EliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EliminarActionPerformed
@@ -232,10 +207,6 @@ public class CargaDatos extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_ExaminarActionPerformed
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
-
     /**
      * @param args the command line arguments
      */
@@ -268,7 +239,6 @@ public class CargaDatos extends javax.swing.JFrame {
                 new CargaDatos().setVisible(true);
             }
         });
-        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -281,7 +251,31 @@ public class CargaDatos extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
-    public static javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void run() {
+        for(int i=0;i<this.archivosSeleccionados.length;i++)
+        {
+            this.c=new Cliente();
+            HiloProgressBar print=new HiloProgressBar(this.c,this.jProgressBar1);
+            print.execute();
+            //c.setBar(jProgressBar1);
+            Archivos archivo=new Archivos(archivosSeleccionados[i]);
+            try {
+                if(c.EnviarDatos(archivo)==1){
+                    modelo.remove(0);
+                    JOptionPane.showMessageDialog(null, "Archivo "+archivosSeleccionados[i]+" ha sido recibido exitosamente");
+                    archivosSeleccionados[i]=null;
+                }
+            } catch (InterruptedException ex) {
+                JOptionPane.showMessageDialog(null, "Conexion interrumpida");
+            } catch(NullPointerException ex){
+                JOptionPane.showMessageDialog(null, "Servidor no está disponible");
+                i=this.archivosSeleccionados.length;
+            }
+        }
+    }
 }
