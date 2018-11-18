@@ -5,6 +5,7 @@
  */
 package practica1redes2;
 
+import static InterfazGrafica.CargaDatos.jTextField1;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -12,17 +13,20 @@ import java.net.Socket;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JProgressBar;
 
 /**
  *
  * @author HP
  */
-public class Cliente {
-    private final String DIRECCION="localhost";
+public class Cliente{
+    private final String DIRECCION="192.168.43.183";
     private final int PUERTO_DESTINO=3000;
     private Socket cliente=null;
     public final int PARTEMENSAJE=10;
     private Archivos archivo=null; 
+    public float porcentaje=0;
+    private JProgressBar bar;
     public Cliente() {
     }
     public int EnviarDatos(Archivos dato) throws InterruptedException{
@@ -38,12 +42,10 @@ public class Cliente {
             enviarDatos=new ObjectOutputStream(cliente.getOutputStream());
             recibirDatos=new ObjectInputStream(cliente.getInputStream());
             //Se le manda el nombre del archivo junto con el tamaño del mismo
-            enviarDatos.writeObject(dato.getArchivo().getName()+" "+dato.getArrayByte().length);
+            enviarDatos.writeObject(dato.getArchivo().getName()+"`"+dato.getArrayByte().length);
             //respuesta del servidor
             String informacion=(String)recibirDatos.readObject();
             System.out.println(informacion);
-            
-            float porcentaje;
             int maximo=dato.getArrayByte().length;
             byte datoE;
             for(int i=0;i<maximo;i++)
@@ -52,8 +54,11 @@ public class Cliente {
                 datoE=dato.getArrayByte()[i];
                 enviarDatos.writeObject(datoE);
                 //Calculamos el porcentaje de envio
-                porcentaje=((i+1)*100)/(maximo);
-                System.out.println(datoE+" porcentaje: " + porcentaje + "%");
+                this.porcentaje=((i+1)*100)/(maximo);
+                //this.bar.setValue((int)this.porcentaje);
+               
+                System.out.println("porcentaje: " + porcentaje + "%");
+                //System.out.println(datoE+" porcentaje: " + this.porcentaje + "%");
             }
         } catch (IOException ex) {
             //Si ocurre algun error
@@ -69,14 +74,30 @@ public class Cliente {
                 if(enviarDatos!=null)
                     enviarDatos.close();
                 cliente.close();
-                return 1;
             } catch (IOException ex) {
                 //errores al cerrar los flujos
                 return 0;
             }
         }
+        return 1;
     }
-    public static void main(String args[]) throws InterruptedException{
+
+    public JProgressBar getBar() {
+        return bar;
+    }
+
+    public void setBar(JProgressBar bar) {
+        this.bar = bar;
+    }
+    
+    public float getPorcentaje() {
+        return porcentaje;
+    }
+
+    public void setPorcentaje(float porcentaje) {
+        this.porcentaje = porcentaje;
+    }
+    /*public static void main(String args[]) throws InterruptedException{
         Cliente cl=new Cliente();
         String ruta="C:\\Users\\HP\\Documents\\pruebaNormalizada.png";
         Archivos arch=new Archivos(ruta);
@@ -86,5 +107,5 @@ public class Cliente {
         String ruta2="C:\\Users\\HP\\Documents\\Tiposdesocket.pdf";
         Archivos archivo=new Archivos(ruta2);
         c2.EnviarDatos(archivo);
-    }
+    }*/
 }

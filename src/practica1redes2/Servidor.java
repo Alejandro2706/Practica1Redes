@@ -22,14 +22,23 @@ import java.util.logging.Logger;
  *
  * @author HP
  */
-public class Servidor {
+public class Servidor extends Thread{
     private ServerSocket servidor=null;
     private final int PUERTO=3000;
     private BufferedReader inbound=null;
     private OutputStream outbound=null;
     private Socket cliente=null;
-    
-    public Servidor() {
+    private int tamanoArch;
+    public float porcentaje;
+    public Servidor(){
+    }
+    @Override
+    public void run(){
+        try {
+            escucha();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     public void escucha() throws ClassNotFoundException
     {
@@ -64,8 +73,9 @@ public class Servidor {
                     if(entrada instanceof String)
                     {
                         nombreFile=(String)entrada;
-                        String[] partes=nombreFile.split(" ");
+                        String[] partes=nombreFile.split("`");
                         //Se inicia un array del mismo tamaño del archivo para guardar los bytes en la carga
+                        this.tamanoArch=Integer.parseInt(partes[1]);
                         dato=new byte[Integer.parseInt(partes[1])];
                         //respuesta al cliente
                         salidaDatos.writeObject("lo recibí\n");
@@ -76,6 +86,8 @@ public class Servidor {
                     else{
                         dato[contadorDato]=(byte)entrada;
                         contadorDato++;
+                        porcentaje=((contadorDato+1)*100)/(this.tamanoArch);
+                        System.out.println("porcentaje: "+porcentaje);
                     }
                 }
             //Entra a esta excepcion cuando el cliente acabe su conexion, aca se escribe en el fichero    
